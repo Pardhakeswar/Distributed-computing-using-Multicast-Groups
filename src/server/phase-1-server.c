@@ -28,7 +28,7 @@ int main(){
   bind(welcomeSocket, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
 
   /*---- Listen on the socket, with 5 max connection requests queued ----*/
-  if(listen(welcomeSocket,5)==0)
+  if(listen(welcomeSocket,SOMAXCONN)==0)
     printf("Listening\n");
   else
     printf("Error\n");
