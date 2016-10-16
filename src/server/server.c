@@ -29,7 +29,7 @@ serv_addr.sin_port = htons(5000);
 
 bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
 
-listen(listenfd, 10); 
+listen(listenfd, SOMAXCONN); 
 
 connfd = accept(listenfd, (struct sockaddr*)NULL, NULL); 
 
