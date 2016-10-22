@@ -6,12 +6,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <pthread.h>
 
-#define PORT    5000
+#define PORT    4005
 #define MAXMSG  512
 
 int
-make_socket (uint16_t port)
+make_socket (int port)
 {
   int sock;
   struct sockaddr_in name;
@@ -27,8 +28,8 @@ make_socket (uint16_t port)
   /* Give the socket a name. */
   name.sin_family = AF_INET;
   name.sin_port = htons (port);
-  name.sin_addr.s_addr = htonl (INADDR_ANY);
-  if (bind (sock, (struct sockaddr *) &name, sizeof (name)) < 0)
+  name.sin_addr.s_addr = inet_addr("127.0.0.1");
+  if (bind (sock, (struct sockaddr *) &name, sizeof (name)) != 0)
     {
       perror ("bind");
       exit (EXIT_FAILURE);
@@ -61,10 +62,10 @@ read_from_client (int filedes)
     }
 }
 
-int
-main (void)
+int *join_client() 
 {
-  int make_socket (uint16_t port);
+
+  int make_socket (int port);
   int sock;
   fd_set active_fd_set, read_fd_set;
   int i;
@@ -126,5 +127,33 @@ main (void)
                   }
               }
           }
-    }
+
+   }
+	return 0;
+}
+void *print_message_function( void *ptr )
+{
+     char *message;
+     message = (char *) ptr;
+     printf("%s \n", message);
+}
+int
+main (void)
+{
+     pthread_t thread1,thread2;
+     int  iret1,iret2;
+
+    /* Create independent threads each of which will execute function */
+
+     iret1 = pthread_create( &thread1, NULL,join_client , NULL);
+     iret2 = pthread_create( &thread2, NULL,print_message_function , (void *) "Abhash print message thread");
+     /* Wait till threads are complete before main continues. Unless we  */
+     /* wait we run the risk of executing an exit which will terminate   */
+     /* the process and all threads before the threads have completed.   */
+
+     pthread_join( thread1, NULL);
+     pthread_join( thread2, NULL);
+     printf("Thread 2 returns: %d\n",iret2);
+     printf("Thread 1 returns: %d\n",iret1);
+     exit(0);
 }
