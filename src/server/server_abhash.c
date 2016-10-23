@@ -7,9 +7,15 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <pthread.h>
+#include "../includes/group.h"
 
-#define PORT    4005
+#define PORT    4006
 #define MAXMSG  512
+#define GROUPSIZE 10
+
+struct clients *client;
+struct groups group[GROUPSIZE]; 
+enum operation {A=1,S,M,D,R=9999};
 
 int
 make_socket (int port)
@@ -28,7 +34,7 @@ make_socket (int port)
   /* Give the socket a name. */
   name.sin_family = AF_INET;
   name.sin_port = htons (port);
-  name.sin_addr.s_addr = inet_addr("127.0.0.1");
+  name.sin_addr.s_addr = htonl (INADDR_ANY);
   if (bind (sock, (struct sockaddr *) &name, sizeof (name)) != 0)
     {
       perror ("bind");
@@ -43,7 +49,7 @@ read_from_client (int filedes)
 {
   char buffer[MAXMSG];
   int nbytes;
-
+  int capability_value = 0;
   nbytes = read (filedes, buffer, MAXMSG);
   if (nbytes < 0)
     {
@@ -57,7 +63,27 @@ read_from_client (int filedes)
   else
     {
       /* Data read. */
-      fprintf (stderr, "Server: got message: `%s'\n", buffer);
+      switch (buffer[0]) {
+	case 'A':
+		capability_value = 1;
+		break;
+	case 'S':
+		capability_value = 2;
+		break;
+	case 'M':
+		capability_value = 3;
+		break;
+	case 'D' :
+		capability_value = 4;
+		break;
+	case 'R' :
+		capability_value = 9999;
+		break;
+	default:
+		capability_value = 0;
+		break;
+      }
+      fprintf (stderr, "\n Server: got message: %s\n", buffer);
       return 0;
     }
 }
@@ -100,6 +126,7 @@ int *join_client()
           {
             if (i == sock)
               {
+		printf("IF i= %d\n",i);
                 /* Connection request on original socket. */
                 int new;
                 size = sizeof (clientname);
@@ -119,11 +146,19 @@ int *join_client()
               }
             else
               {
+		printf("Else i= %d, sock = %d\n",i,sock);
                 /* Data arriving on an already-connected socket. */
-                if (read_from_client (i) < 0)
-                  {
-                    close (i);
-                    FD_CLR (i, &active_fd_set);
+		int temp_capability = read_from_client(i);
+                if (temp_capability < 0)
+                {
+		    	//Create Client structure and add it to group based on capability
+               		struct clients *tmpClient =(struct clients*) malloc(sizeof(struct clients));
+                	tmpClient->client_addr = clientname.sin_addr;
+                	tmpClient->client_port = clientname.sin_port;
+                	tmpClient->in_use = false;
+			tmpClient->capability = temp_capability;
+                //    	close (i);
+                  //  	FD_CLR (i, &active_fd_set);
                   }
               }
           }
@@ -156,4 +191,5 @@ main (void)
      printf("Thread 2 returns: %d\n",iret2);
      printf("Thread 1 returns: %d\n",iret1);
      exit(0);
+     return 0;
 }
