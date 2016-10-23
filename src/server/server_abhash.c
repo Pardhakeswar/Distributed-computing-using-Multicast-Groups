@@ -13,7 +13,7 @@
 #define MAXMSG  512
 #define GROUPSIZE 10
 
-struct clients *client;
+struct clients *client=NULL;
 struct groups group[GROUPSIZE]; 
 enum operation {A=1,S,M,D,R=9999};
 
@@ -50,7 +50,7 @@ read_from_client (int filedes)
   char buffer[MAXMSG];
   int nbytes;
   int capability_value = 0;
-  nbytes = read (filedes, buffer, MAXMSG);
+  nbytes = recv(filedes, buffer, sizeof(buffer),0);
   if (nbytes < 0)
     {
       /* Read error. */
@@ -84,9 +84,29 @@ read_from_client (int filedes)
 		break;
       }
       fprintf (stderr, "\n Server: got message: %s\n", buffer);
+      memset(buffer, '\0', sizeof(buffer));
+      sprintf(buffer, "%s", "JOINED");
+      send(filedes, buffer, strlen(buffer), 0);
       return 0;
     }
 }
+
+
+void assignGroup(struct clients client)
+{
+	int i;
+	for(i=0;i<GROUPSIZE;i++)
+	{
+		if (client.capability>=1 && client.capability<=4)
+		{
+			if(strcmp)group[i].capability,"ARITHMETIC")==0)
+			{
+				group[i].client[group[i].size++] = client;
+			}
+		}
+	}
+}
+
 
 int *join_client() 
 {
@@ -149,7 +169,7 @@ int *join_client()
 		printf("Else i= %d, sock = %d\n",i,sock);
                 /* Data arriving on an already-connected socket. */
 		int temp_capability = read_from_client(i);
-                if (temp_capability < 0)
+                if (temp_capability >= 0)
                 {
 		    	//Create Client structure and add it to group based on capability
                		struct clients *tmpClient =(struct clients*) malloc(sizeof(struct clients));
@@ -157,8 +177,20 @@ int *join_client()
                 	tmpClient->client_port = clientname.sin_port;
                 	tmpClient->in_use = false;
 			tmpClient->capability = temp_capability;
+			tmpClient->next = NULL;
+			assignGroup(tmpClient);
+
+			if(client == NULL)
+				client  = tmpClient;
+
+			else {
+				tmpClient->next = client;
+				client = tmpClient;
+			}						
                 //    	close (i);
                   //  	FD_CLR (i, &active_fd_set);
+
+			
                   }
               }
           }
@@ -172,6 +204,27 @@ void *print_message_function( void *ptr )
      message = (char *) ptr;
      printf("%s \n", message);
 }
+
+void defineGroup()
+{
+	int i;
+	for(i=0;i<GROUPSIZE;i=i+3)
+	{
+		strcpy(group[i].task,"ARITHMETIC");
+		strcpy(group[i].name,"ARITHMETIC");
+		group[i].size=0;
+
+		strcpy(group[i].task,"MAXIMUM");
+                strcpy(group[i].name,"MAXIMUM");
+                group[i].size=0;
+
+		strcpy(group[i].task,"SORTING");
+                strcpy(group[i].name,"SORTING");
+                group[i].size=0;
+
+	}
+}
+
 int
 main (void)
 {
@@ -179,7 +232,7 @@ main (void)
      int  iret1,iret2;
 
     /* Create independent threads each of which will execute function */
-
+     defineGroup();	
      iret1 = pthread_create( &thread1, NULL,join_client , NULL);
      iret2 = pthread_create( &thread2, NULL,print_message_function , (void *) "Abhash print message thread");
      /* Wait till threads are complete before main continues. Unless we  */

@@ -49,12 +49,15 @@ if( connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 
 do{
   memset(sendBuff, '\0', sizeof(sendBuff));
-  sprintf(sendBuff, "Server got This is line %d", i);
+  sprintf(sendBuff, "%s", "A");
   send(sockfd, sendBuff, strlen(sendBuff), 0);
   memset(sendBuff, '\0', sizeof(sendBuff));
   recv(sockfd, sendBuff, sizeof(sendBuff),0);
-  printf( "%s\n", sendBuff);
-  //sleep(5);
+  if(strcmp(sendBuff,"JOINED")!=0)
+  {
+	printf("Client could not joined");
+	return 1;
+  }	
 
 }while(++i<2);
 

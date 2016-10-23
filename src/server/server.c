@@ -42,7 +42,7 @@ do{
   sprintf(recvBuff, "Client got This is line %d", i);
   send(connfd, recvBuff, strlen(recvBuff), 0);
   
-}while(++i<2); 
+}while(1); 
 
 return 0;
 

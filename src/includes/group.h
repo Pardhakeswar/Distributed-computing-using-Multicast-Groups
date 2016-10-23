@@ -10,8 +10,9 @@ struct clients {
 	struct in_addr client_addr;
 	unsigned short client_port;
 	char *grp_name;
-	char capability;
+	int capability;
 	bool in_use;
+	struct clients *next;	
 };	
 	
 
@@ -20,5 +21,6 @@ struct groups {
 	struct clients client[255];	
 	int size;
 	bool in_use;
+	char task[15];
 };	
 		
