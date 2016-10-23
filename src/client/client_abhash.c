@@ -11,6 +11,8 @@
 #include <arpa/inet.h> 
 #include "../includes/logger.h"
 
+#define PORT 4006
+
 int main(int argc, char *argv[])
 {
 int sockfd = 0;
@@ -33,7 +35,7 @@ if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 memset(&serv_addr, '0', sizeof(serv_addr)); 
 
 serv_addr.sin_family = AF_INET;
-serv_addr.sin_port = htons(5000); 
+serv_addr.sin_port = htons(PORT); 
 
 if(inet_pton(AF_INET, argv[1], &serv_addr.sin_addr)<=0)
 {
@@ -53,13 +55,14 @@ do{
   send(sockfd, sendBuff, strlen(sendBuff), 0);
   memset(sendBuff, '\0', sizeof(sendBuff));
   recv(sockfd, sendBuff, sizeof(sendBuff),0);
+  printf("%s",sendBuff);
   if(strcmp(sendBuff,"JOINED")!=0)
   {
 	printf("Client could not joined");
 	return 1;
   }	
 
-}while(++i<2);
+}while(++i<20);
 
 
 

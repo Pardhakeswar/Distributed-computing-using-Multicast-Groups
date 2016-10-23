@@ -17,8 +17,8 @@ struct clients {
 	
 
 struct groups {
-	char *name;
-	struct clients client[255];	
+	char name[15];
+	struct clients *client[255];	
 	int size;
 	bool in_use;
 	char task[15];

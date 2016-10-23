@@ -83,25 +83,29 @@ read_from_client (int filedes)
 		capability_value = 0;
 		break;
       }
-      fprintf (stderr, "\n Server: got message: %s\n", buffer);
+      fprintf (stderr, "\n Server: got message: %s   %d\n", buffer,capability_value);
       memset(buffer, '\0', sizeof(buffer));
       sprintf(buffer, "%s", "JOINED");
       send(filedes, buffer, strlen(buffer), 0);
-      return 0;
+      return capability_value;
     }
 }
 
 
-void assignGroup(struct clients client)
+void assignGroup(struct clients *cli)
 {
 	int i;
 	for(i=0;i<GROUPSIZE;i++)
 	{
-		if (client.capability>=1 && client.capability<=4)
+		if (cli->capability >=1 && cli->capability <= 4)
 		{
-			if(strcmp)group[i].capability,"ARITHMETIC")==0)
+			if(strcmp(group[i].task,"ARITHMETIC")==0)
 			{
-				group[i].client[group[i].size++] = client;
+				group[i].client[group[i].size]->client_addr = cli->client_addr;
+				group[i].client[group[i].size]->client_port = cli->client_port;
+                        	group[i].client[group[i].size]->in_use = false;
+                        	group[i].client[group[i].size]->capability = cli->capability;
+                      		group[i].size+=1;
 			}
 		}
 	}
@@ -166,11 +170,12 @@ int *join_client()
               }
             else
               {
-		printf("Else i= %d, sock = %d\n",i,sock);
+	//	printf("Else i= %d, sock = %d\n",i,sock);
                 /* Data arriving on an already-connected socket. */
 		int temp_capability = read_from_client(i);
                 if (temp_capability >= 0)
                 {
+			printf("inside else \n");
 		    	//Create Client structure and add it to group based on capability
                		struct clients *tmpClient =(struct clients*) malloc(sizeof(struct clients));
                 	tmpClient->client_addr = clientname.sin_addr;
@@ -204,7 +209,37 @@ void *print_message_function( void *ptr )
      message = (char *) ptr;
      printf("%s \n", message);
 }
+void print_group(){
+	int i=0;
+	for(i=0;i<GROUPSIZE;i++){
+	    if(group[i].size == 0){
+		printf("There is no element in %s group\n",group[i].name);
+		continue;
+	    }
+	    printf("There are %d element in %s group\n",group[i].size,group[i].name);
+	}
+}
 
+void *process_cli(){
+    int choice;
+    do{
+	printf("######################\n");
+	printf("Enter your choice\n");
+	printf("1. Print Groups details\n");
+	printf("2. Search for specific group\n");
+	printf("######################\n");
+	scanf("%d",&choice);
+	switch(choice){
+		case 1 :
+		    print_group();
+		    break;
+		case 2:
+		    break;
+		default:
+		    break;	
+	}		
+    }while(1);
+}
 void defineGroup()
 {
 	int i;
@@ -234,7 +269,7 @@ main (void)
     /* Create independent threads each of which will execute function */
      defineGroup();	
      iret1 = pthread_create( &thread1, NULL,join_client , NULL);
-     iret2 = pthread_create( &thread2, NULL,print_message_function , (void *) "Abhash print message thread");
+     iret2 = pthread_create( &thread2, NULL,process_cli , NULL);
      /* Wait till threads are complete before main continues. Unless we  */
      /* wait we run the risk of executing an exit which will terminate   */
      /* the process and all threads before the threads have completed.   */
