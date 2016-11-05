@@ -152,12 +152,12 @@ int *join_client()
               {
 		printf("IF i= %d\n",i);
                 /* Connection request on original socket. */
-                int new;
+                int news;
                 size = sizeof (clientname);
-                new = accept (sock,
+                news = accept (sock,
                               (struct sockaddr *) &clientname,
                               &size);
-                if (new < 0)
+                if (news < 0)
                   {
                     perror ("accept");
                     exit (EXIT_FAILURE);
@@ -166,7 +166,7 @@ int *join_client()
                          "Server: connect from host %s, port %hd.\n",
                          inet_ntoa (clientname.sin_addr),
                          ntohs (clientname.sin_port));
-                FD_SET (new, &active_fd_set);
+                FD_SET (news, &active_fd_set);
               }
             else
               {
