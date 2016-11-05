@@ -101,10 +101,10 @@ void assignGroup(struct clients *cli)
 		{
 			if(strcmp(group[i].task,"ARITHMETIC")==0)
 			{
-				group[i].client[group[i].size]->client_addr = cli->client_addr;
-				group[i].client[group[i].size]->client_port = cli->client_port;
-                        	group[i].client[group[i].size]->in_use = false;
-                        	group[i].client[group[i].size]->capability = cli->capability;
+				group[i].client[group[i].size].client_addr = cli->client_addr;
+				group[i].client[group[i].size].client_port = cli->client_port;
+                        	group[i].client[group[i].size].in_use = false;
+                        	group[i].client[group[i].size].capability = cli->capability;
                       		group[i].size+=1;
 			}
 		}
