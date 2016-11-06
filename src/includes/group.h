@@ -11,6 +11,7 @@ struct clients {
 	unsigned short client_port;
 	char *grp_name;
 	int capability;
+    int fd;
 	bool in_use;
 	struct clients *next;	
 };	
