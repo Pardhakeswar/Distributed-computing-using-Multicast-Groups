@@ -17,7 +17,7 @@ struct sockaddr_in serv_addr;
 
 char sendBuff[1025];
 char recvBuff[100];
-
+//xcc
 int i = 0;
 
 listenfd = socket(AF_INET, SOCK_STREAM, 0);
