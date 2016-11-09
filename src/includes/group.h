@@ -3,7 +3,7 @@
 
 char *join_group();
 void leave_group();
-char *search_group();
+//char *search_group();
 
 
 struct clients {

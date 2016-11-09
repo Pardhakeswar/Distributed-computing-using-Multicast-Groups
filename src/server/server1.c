@@ -228,7 +228,7 @@ void print_group(){
 int sorting_group_search()
 {	
 	int i;
-	int max, index;
+	int max, index = -1;
 	max=0;
 	for(i=0;i<GROUPSIZE;i++)
 	{
@@ -254,7 +254,7 @@ char *my_itoa(int num, char *str)
         return str;
 }
 
-void distribute_task(int num_cli,struct group G,int grp_index,int *a,int n)
+void distribute_task(int num_cli,struct groups G,int grp_index,int *a,int n)
 {
 	int arr[100000];
 	
@@ -265,6 +265,7 @@ void distribute_task(int num_cli,struct group G,int grp_index,int *a,int n)
 	for(k=0;k<num_cli;k++);
 	{
 		char buf[100000]="";
+		char str_num[5];
 		for(i=j*k;i<(j+k*j)-1;i++)
 		{
 			char str_num[5];
@@ -274,7 +275,7 @@ void distribute_task(int num_cli,struct group G,int grp_index,int *a,int n)
 		}	
 		my_itoa(a[i],str_num);
                 strcat(buf,str_num);
-		send(G.client[k]->fd,buf,strlen(buf),0);
+		send(G.client[k].fd,buf,strlen(buf),0);
 
 	}
 }
@@ -287,14 +288,29 @@ void sorting()
 	n=0;
 	while(!feof(fp))
 	{
-		fscanf(fp,"%d",arr[i]);
+		fscanf(fp,"%d",&arr[n]);
 		n+=1;
 	}
 	
 	grp_index = sorting_group_search();		
-	num_cli = group[grp_index].size;
-	distribute_task(num_cli,group[grp_index],grp_index,arr,n);		
+	if(grp_index != -1) {
+		num_cli = group[grp_index].size;
+		distribute_task(num_cli,group[grp_index],grp_index,arr,n);		
+	}
+	else {
+		printf("No such group exist to do the intending task\n");
+	}
+	return;
 }
+
+void arithmetic()
+{}
+
+void max_min()
+{}
+
+void search_group()
+{}
 
 void perform_task()
 {
@@ -305,7 +321,8 @@ void perform_task()
         printf("2. Arithmetic\n");
         printf("3. Maximum and Minimum\n");
         printf("*******************************\n");
-	scanf("Enter the choice for the task : %d",&choice);
+	printf("Enter the choice for the task :");
+	scanf("%d",&choice);
 
 	switch(choice)
 	{
