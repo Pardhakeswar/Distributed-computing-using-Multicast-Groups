@@ -13,6 +13,8 @@
 #define MAXMSG  512
 #define GROUPSIZE 10
 
+int J_CLI;
+
 struct clients *client=NULL;
 struct groups group[GROUPSIZE]; 
 int **b=NULL;
@@ -27,7 +29,7 @@ make_socket (int port)
   struct sockaddr_in name;
 
   /* Create the socket. */
-  sock = socket (PF_INET, SOCK_STREAM, 0);
+  sock = socket (AF_INET, SOCK_STREAM, 0);
   if (sock < 0)
     {
       perror ("socket");
@@ -53,17 +55,17 @@ void assignGroup(struct clients *cli)
 	int i;
 	for(i=0;i<GROUPSIZE;i++)
 	{
-		if (cli->capability >=1 && cli->capability <= 4)
-		{
 			if(strcmp(group[i].task,"SORTING")==0)
 			{
 				group[i].client[group[i].size].client_addr = cli->client_addr;
 				group[i].client[group[i].size].client_port = cli->client_port;
                         	group[i].client[group[i].size].in_use = false;
+				group[i].client[group[i].size].fd = cli->fd;
+				printf("assign group  %d   %d",i,group[i].client[group[i].size].fd);
                         	group[i].client[group[i].size].capability = cli->capability;
+				printf("in function %s size is %d\n",__FUNCTION__,group[i].size);
                       		group[i].size+=1;
 			}
-		}
 	}
 }
 
@@ -120,6 +122,7 @@ void merge()
 void
 read_from_client (int filedes,struct sockaddr_in clientname)
 {
+  printf("In function read_from_client");
   char buffer[MAXMSG];
   int nbytes;
   int capability_value = 0;
@@ -138,6 +141,7 @@ read_from_client (int filedes,struct sockaddr_in clientname)
   else
     {
       /* Data read. */
+      printf("In %s--- %c",__FUNCTION__,buffer[0]);
       switch (buffer[0]) {
 	case 'J':
 		capability_value = 1;
@@ -153,7 +157,7 @@ read_from_client (int filedes,struct sockaddr_in clientname)
 		capability_value = 0;
 		break;
       }
-      fprintf (stderr, "\n Server: got message: %s   %d\n", buffer,capability_value);
+      printf (stderr, "\n Server: got message: %s   %d\n", buffer,capability_value);
       
       if ( capability_value== 1)
       {
@@ -161,6 +165,7 @@ read_from_client (int filedes,struct sockaddr_in clientname)
 	//Create Client structure and add it to group based on capability
         struct clients *tmpClient =(struct clients*) malloc(sizeof(struct clients));
 	tmpClient->fd = filedes;
+	printf("filedes   %d\n",tmpClient->fd);
         tmpClient->client_addr = clientname.sin_addr;
         tmpClient->client_port = clientname.sin_port;
         tmpClient->in_use = false;
@@ -260,11 +265,13 @@ int join_client()
                          inet_ntoa (clientname.sin_addr),
                          ntohs (clientname.sin_port));*/
                 FD_SET (news, &active_fd_set);
-
+		J_CLI=i;
               }
             else
+		{
+		printf("%d iiii \n",i);
               read_from_client(i,clientname);
-              
+              }
           }
 
    }
@@ -283,7 +290,7 @@ void print_group(){
 		printf("There is no element in %s group\n",group[i].name);
 		continue;
 	    }
-	    printf("There are %d element in %s group\n",group[i].size,group[i].name);
+	    printf("There are %d element in %s group   %d\n",group[i].size,group[i].name,group[i].client[0].fd);
 	}
 }
 
@@ -316,28 +323,37 @@ char *my_itoa(int num, char *str)
         return str;
 }
 
-void distribute_task(int num_cli,struct groups G,int grp_index,int *a,int n)
+void distribute_task(int num_cli,int grp_index,int *a,int n)
 {
 	int arr[100000];
 	
-	int i,j,k,count,count_client=0;
+	int i,j,k1,count,count_client=0,fl;
 	j=n/num_cli;
 	PER_CLI = j;
 	count=0;
-	for(k=0;k<num_cli;k++);
+
+	for(k1=0;k1<num_cli;k1++)
 	{
+		printf("kjkjkjkj  %d\n",k1);
 		char buf[100000]="";
 		char str_num[5];
-		for(i=j*k;i<(j+k*j)-1;i++)
+		for(i=j*k1;i<(j+k1*j)-1;i++)
 		{
 			char str_num[5];
 			my_itoa(a[i],str_num);
 			strcat(buf,str_num);
 			strcat(buf," ");
-		}	
+		}
+		printf("kkkkk   %d\n",k1);	
 		my_itoa(a[i],str_num);
                 strcat(buf,str_num);
-		send(G.client[k].fd,buf,strlen(buf),0);
+		printf("%s\n\n",str_num);
+		printf("distri\n\n");
+		printf("distri 111 %s\n",group[grp_index].task);
+		printf("in function %s size is %d, k=%d\n",__FUNCTION__,group[grp_index].size,k1);
+		printf("%d \t %s\n",group[grp_index].client[k1].fd,buf);
+		if(send(group[grp_index].client[k1].fd,buf,strlen(buf),0)<0)
+			printf("ERROR\n");
 
 	}
 }
@@ -355,10 +371,11 @@ void sorting()
 	}
 	
 	grp_index = sorting_group_search();		
+	printf("goupnindex   %d\n",grp_index);
 	if(grp_index != -1) {
 		num_cli = group[grp_index].size;
 		NUM_CLI=num_cli;
-		distribute_task(num_cli,group[grp_index],grp_index,arr,n);		
+		distribute_task(num_cli,grp_index,arr,n);		
 	}
 	else {
 		printf("No such group exist to do the intending task\n");

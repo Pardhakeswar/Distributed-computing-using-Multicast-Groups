@@ -54,7 +54,7 @@ void sendTask(void *data)
         } else {
             join_flag = 0;
         }
-        sendMessage(op, server_details->ip_addr, buffer);
+        sendMessage(op, server_details->ip_addr, buffer,server_details->sockFd);
     }
 }
 
@@ -66,6 +66,7 @@ void recvTask(void *data)
     while(1)
     {
         memset(receive_buff, '\0', sizeof(receive_buff));
+	printf("revcvcvcvc %d\n",server_details->sockFd);
         recv(server_details->sockFd, receive_buff, sizeof(receive_buff),0);
         printf("%s\n",receive_buff);
         if(strcmp(receive_buff,"JOINED")==0)
@@ -216,7 +217,7 @@ int main(int argc, char *argv[])
     printf("Enter the server IP Address\n");
     scanf("%s",ser_ip_addr);
     sockFd = connectToServer(ser_ip_addr);
-
+    printf("socketfd %d \n",sockFd);
     if(-1 == sockFd)
     {
         printf("Coonection failed - Some serious problem\n");
@@ -266,6 +267,7 @@ int * sortNumbers(int *array, int num_of_elements)
 void sendMessage(OPERATION op, char *ip_addr, char *buffer, int sockfd)
 {
     char capability;
+    int return_send;
     switch(op)
     {
         case JOIN:
@@ -285,7 +287,10 @@ void sendMessage(OPERATION op, char *ip_addr, char *buffer, int sockfd)
             printf("Invalid operation\n");
     }
 
-    send(sockfd, buffer, strlen(buffer), 0);
+    return_send= send(sockfd, buffer, strlen(buffer), 0);
+    printf("Socket for send %d",sockfd);
+    printf("Return send %d\n",return_send);
+    printf("Oh dear, something went wrong int %d ! %s\n", errno,strerror(errno));
 }
 
 int connectToServer(char *serv_ip_addr)
