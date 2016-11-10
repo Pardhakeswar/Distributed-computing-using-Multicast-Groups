@@ -15,6 +15,9 @@
 
 struct clients *client=NULL;
 struct groups group[GROUPSIZE]; 
+int **b=NULL;
+int ib=0;
+int NUM_CLI,PER_CLI;
 enum operation {A=1,S,M,D,R=9999};
 
 int
@@ -44,53 +47,6 @@ make_socket (int port)
   return sock;
 }
 
-int
-read_from_client (int filedes)
-{
-  char buffer[MAXMSG];
-  int nbytes;
-  int capability_value = 0;
-  nbytes = recv(filedes, buffer, sizeof(buffer),0);
-  if (nbytes < 0)
-    {
-      /* Read error. */
-      perror ("read");
-      exit (EXIT_FAILURE);
-    }
-  else if (nbytes == 0)
-    /* End-of-file. */
-    return -1;
-  else
-    {
-      /* Data read. */
-      switch (buffer[0]) {
-	case 'A':
-		capability_value = 1;
-		break;
-	case 'S':
-		capability_value = 2;
-		break;
-	case 'M':
-		capability_value = 3;
-		break;
-	case 'D' :
-		capability_value = 4;
-		break;
-	case 'R' :
-		capability_value = 9999;
-		break;
-	default:
-		capability_value = 0;
-		break;
-      }
-      fprintf (stderr, "\n Server: got message: %s   %d\n", buffer,capability_value);
-      memset(buffer, '\0', sizeof(buffer));
-      sprintf(buffer, "%s", "JOINED");
-      send(filedes, buffer, strlen(buffer), 0);
-      return capability_value;
-    }
-}
-
 
 void assignGroup(struct clients *cli)
 {
@@ -111,6 +67,140 @@ void assignGroup(struct clients *cli)
 	}
 }
 
+
+void parse_res(char* buf)
+{
+	int a;
+	char* tok;
+	tok = strtok(buf," ");
+	a=0;
+	b[ib][a++] = (int) strtol(tok, (char **)NULL, 10);
+	while(tok!=NULL)
+	{
+		tok = strtok(NULL," ");
+		b[ib][a++] = (int) strtol(tok, (char **)NULL, 10);
+	}
+	ib=ib+1;
+}
+
+
+void merge()
+{
+	int cl[NUM_CLI];
+	int i;
+	while(i<NUM_CLI)
+		cl[i]=0;
+	while(cl[0] < PER_CLI && cl[1] < PER_CLI)
+	{
+		if(b[0][cl[0]] < b[1][cl[1]])
+		{
+			printf("%d\n",b[0][cl[0]]);
+			cl[0] += 1;
+		}
+		if(b[0][cl[0]] > b[1][cl[1]])
+		{
+			printf("%d\n",b[0][cl[1]]);
+			cl[1] += 1;
+		}
+	}
+
+	if(cl[0]==PER_CLI)
+	{
+		for(i=cl[1];i<PER_CLI;i++)
+			printf("%d\n",b[0][cl[1]]);	
+	}
+	else if(cl[1]==PER_CLI)
+	{
+		for(i=cl[0];i<PER_CLI;i++)
+			printf("%d\n",b[0][cl[0]]);	
+	}
+	
+}
+
+void
+read_from_client (int filedes,struct sockaddr_in clientname)
+{
+  char buffer[MAXMSG];
+  int nbytes;
+  int capability_value = 0;
+  char* res;
+  char cap;
+  nbytes = recv(filedes, buffer, sizeof(buffer),0);
+  if (nbytes < 0)
+    {
+      /* Read error. */
+      perror ("read");
+      exit (EXIT_FAILURE);
+    }
+  else if (nbytes == 0)
+    /* End-of-file. */
+    return -1;
+  else
+    {
+      /* Data read. */
+      switch (buffer[0]) {
+	case 'J':
+		capability_value = 1;
+		break;
+	case 'D':
+		capability_value = 2;
+		break;
+	case 'R':
+		capability_value = 3;
+		fscanf(buffer,"%c %s",&cap,&res);
+		break;
+	default:
+		capability_value = 0;
+		break;
+      }
+      fprintf (stderr, "\n Server: got message: %s   %d\n", buffer,capability_value);
+      
+      if ( capability_value== 1)
+      {
+	printf("inside else \n");
+	//Create Client structure and add it to group based on capability
+        struct clients *tmpClient =(struct clients*) malloc(sizeof(struct clients));
+	tmpClient->fd = filedes;
+        tmpClient->client_addr = clientname.sin_addr;
+        tmpClient->client_port = clientname.sin_port;
+        tmpClient->in_use = false;
+	tmpClient->capability = capability_value;
+	tmpClient->next = NULL;
+	assignGroup(tmpClient);
+	if(client == NULL)
+		client  = tmpClient;
+	else {
+		tmpClient->next = client;
+		client = tmpClient;
+	}						
+          		
+      }
+      else if(capability_value == 2)
+      {
+					
+      }
+      else if(capability_value == 3)
+      {
+	int i;
+	if(b==NULL)
+	{
+		b = (int **) malloc(sizeof(int *)*NUM_CLI);
+		for(i=0;i<NUM_CLI;i++)
+		{
+			b[i] = (int *) malloc(sizeof(int)*PER_CLI);	
+		}
+	}
+	else {
+		if(ib==NUM_CLI)
+			merge();
+		else {
+			parse_res(res);
+		}
+		
+	}	
+      }
+    }
+}
 
 int join_client() 
 {
@@ -143,7 +233,7 @@ int join_client()
           perror ("select");
           exit (EXIT_FAILURE);
         }
-//printf("sdsdsd\n");
+
       /* Service all the sockets with input pending. */
       for (i = 0; i < FD_SETSIZE; ++i)
         if (FD_ISSET (i, &read_fd_set))
@@ -154,55 +244,27 @@ int join_client()
                 /* Connection request on original socket. */
                 int news;
                 size = sizeof (clientname);
-//printf("dfdddddd\n");
+
                 news = accept (sock,
                               (struct sockaddr *) &clientname,
                               &size);
-//printf("ggfgfgfgfggf\n");
+
                 if (news < 0)
                   {
                     perror ("accept");
                     exit (EXIT_FAILURE);
                   }
-//printf("4\n");
+
         /*        fprintf (stderr,
                          "Server: connect from host %s, port %hd.\n",
                          inet_ntoa (clientname.sin_addr),
                          ntohs (clientname.sin_port));*/
                 FD_SET (news, &active_fd_set);
-//printf("5\n");
+
               }
             else
-              {
-	//	printf("Else i= %d, sock = %d\n",i,sock);
-                /* Data arriving on an already-connected socket. */
-		int temp_capability = read_from_client(i);
-                if (temp_capability >= 0)
-                {
-			printf("inside else \n");
-		    	//Create Client structure and add it to group based on capability
-               		struct clients *tmpClient =(struct clients*) malloc(sizeof(struct clients));
-			tmpClient->fd = i;
-                	tmpClient->client_addr = clientname.sin_addr;
-                	tmpClient->client_port = clientname.sin_port;
-                	tmpClient->in_use = false;
-			tmpClient->capability = temp_capability;
-			tmpClient->next = NULL;
-			assignGroup(tmpClient);
-
-			if(client == NULL)
-				client  = tmpClient;
-
-			else {
-				tmpClient->next = client;
-				client = tmpClient;
-			}						
-                //    	close (i);
-                  //  	FD_CLR (i, &active_fd_set);
-
-			
-                  }
-              }
+              read_from_client(i,clientname);
+              
           }
 
    }
@@ -260,7 +322,7 @@ void distribute_task(int num_cli,struct groups G,int grp_index,int *a,int n)
 	
 	int i,j,k,count,count_client=0;
 	j=n/num_cli;
-
+	PER_CLI = j;
 	count=0;
 	for(k=0;k<num_cli;k++);
 	{
@@ -295,6 +357,7 @@ void sorting()
 	grp_index = sorting_group_search();		
 	if(grp_index != -1) {
 		num_cli = group[grp_index].size;
+		NUM_CLI=num_cli;
 		distribute_task(num_cli,group[grp_index],grp_index,arr,n);		
 	}
 	else {
