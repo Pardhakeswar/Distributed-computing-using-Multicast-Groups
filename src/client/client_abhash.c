@@ -39,22 +39,23 @@ void sendTask(void *data)
     while(1){
         if(join_flag == 0){
             printf("****************************************\n");
-            printf("Enter the opeartion");
+            printf("Enter the opeartion\n");
             printf("1 - To join\n");
             printf("****************************************\n");
         } else{
             printf("****************************************\n");
-            printf("Enter the opeartion");
+            printf("Enter the opeartion\n");
             printf("2 - To delete\n");
             printf("****************************************\n");
         }
-        scanf("%d",op);
+        scanf("%d",&op);
         if(op == 1){
             join_flag = 1;
         } else {
-            join_flag ==0;
+            join_flag = 0;
         }
         sendMessage(op, server_details->ip_addr, buffer);
+	sleep(60);
     }
 }
 
@@ -62,6 +63,7 @@ void recvTask(void *data)
 {
     char receive_buff[1024];
     SERVER_DETAILS *server_details = (SERVER_DETAILS *)data;
+    printf("Inside recvTask\n");
     while(1)
     {
         memset(receive_buff, '\0', sizeof(receive_buff));
@@ -269,8 +271,9 @@ void sendMessage(OPERATION op, char *ip_addr, char *buffer, int sockfd)
     {
         case JOIN:
                 printf("Enter the capability of the client\n");
-                scanf("%c",&capability);
-                memset(buffer, '\0', sizeof(buffer));
+                //scanf("%c",&capability);
+                capability = 'S';
+		memset(buffer, '\0', sizeof(buffer));
                 sprintf(buffer, "%c", capability);            
             break;
         case DELETE:
