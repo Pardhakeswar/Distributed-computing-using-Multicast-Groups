@@ -55,7 +55,6 @@ void sendTask(void *data)
             join_flag = 0;
         }
         sendMessage(op, server_details->ip_addr, buffer);
-	sleep(60);
     }
 }
 
@@ -272,7 +271,7 @@ void sendMessage(OPERATION op, char *ip_addr, char *buffer, int sockfd)
         case JOIN:
                 printf("Enter the capability of the client\n");
                 //scanf("%c",&capability);
-                capability = 'S';
+                capability = 'J';
 		memset(buffer, '\0', sizeof(buffer));
                 sprintf(buffer, "%c", capability);            
             break;
