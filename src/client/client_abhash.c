@@ -16,6 +16,73 @@
 
 #define PORT 4006
 
+typedef enum _operation
+{
+    JOIN = 1,
+    DELETE = 2,
+    RESULT = 3
+}OPERATION;
+
+typedef struct _server_details
+{
+    char ip_addr[16];
+    int sockFd;
+}SERVER_DETAILS;
+
+
+void sendTask(void *data)
+{
+    int op = 0;
+    char buffer[1024];
+    int join_flag = 0;
+    SERVER_DETAILS *server_details = (SERVER_DETAILS *)data;
+    while(1){
+        if(join_flag == 0){
+            printf("****************************************\n");
+            printf("Enter the opeartion");
+            printf("1 - To join\n");
+            printf("****************************************\n");
+        } else{
+            printf("****************************************\n");
+            printf("Enter the opeartion");
+            printf("2 - To delete\n");
+            printf("****************************************\n");
+        }
+        scanf("%d",op);
+        if(op == 1){
+            join_flag = 1;
+        } else {
+            join_flag ==0;
+        }
+        sendMessage(op, server_details->ip_addr, buffer);
+    }
+}
+
+void recvTask(void *data)
+{
+    char receive_buff[1024];
+    SERVER_DETAILS *server_details = (SERVER_DETAILS *)data;
+    while(1)
+    {
+        memset(receive_buff, '\0', sizeof(receive_buff));
+        recv(server_details->sockFd, receive_buff, sizeof(receive_buff),0);
+        printf("%s\n",receive_buff);
+        if(strcmp(receive_buff,"JOINED")==0)
+        {
+           printf("In PerformTask JOINED\n");
+        }
+        else
+        {
+            printf("Client Received some work\n");
+
+            printf("Data is : %s\n", receive_buff);
+
+        }
+    }
+}
+
+
+#if 0
 void JoinToGroup(char *ip_addr, char capability)
 {
     int sockfd = 0;
@@ -28,6 +95,8 @@ void JoinToGroup(char *ip_addr, char capability)
         printf("\n Error : Could not create socket \n");
         return;
     }
+
+    printf("GSH : PerformTask 4444 sockfd = %d\n",sockfd);
 
     memset(&serv_addr, '0', sizeof(serv_addr)); 
     
@@ -80,7 +149,7 @@ void JoinOrExit(){
 		case 1 :
             //printf("Enter capability of the client\n");
             //capability = getchar();
-            capability = 'A';
+            capability = 'S';
             printf("Enter the server IP Address\n");
             scanf("%s",ser_ip_addr);
 		    JoinToGroup(ser_ip_addr, capability);
@@ -108,19 +177,10 @@ void PerformTask()
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT); 
 
+    printf("GSH : PerformTask 1111\n");
+
     do{
-        
-        if(inet_pton(AF_INET, ser_ip_addr, &serv_addr.sin_addr)<=0)
-        {
-            printf("\n inet_pton error occured\n");
-            return;
-        } 
-        
-        if( connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-        {
-           printf("\n Error : Connect Failed \n");
-           return;
-        }
+        printf("GSH : PerformTask 3333 sockfd = %d\n",sockfd);
 
         memset(receive_buff, '\0', sizeof(receive_buff));
         recv(sockfd, receive_buff, sizeof(receive_buff),0);
@@ -136,25 +196,46 @@ void PerformTask()
             printf("Data is : %s\n", receive_buff);
 
         }
+
+        sleep(60);
     }while(1);
     return;    
 }
 
-
+#endif
 int main(int argc, char *argv[])
 {
+    int sockFd = 0;
+    char ser_ip_addr[16];
+    SERVER_DETAILS server_details;
+
     pthread_t thread1,thread2;
     int  iret1,iret2;
 
-    iret1 = pthread_create( &thread1, NULL, PerformTask, NULL);
-    iret2 = pthread_create( &thread2, NULL, JoinOrExit, NULL);
+    printf("Enter the server IP Address\n");
+    scanf("%s",ser_ip_addr);
+    sockFd = connectToServer(ser_ip_addr);
+
+    if(-1 == sockFd)
+    {
+        printf("Coonection failed - Some serious problem\n");
+        exit(1);
+    }
+
+    memcpy(server_details.ip_addr,ser_ip_addr,sizeof(server_details.ip_addr));
+    server_details.sockFd = sockFd;
+
+    iret1 = pthread_create( &thread1, NULL,sendTask , (void *)&server_details);
+    iret2 = pthread_create( &thread2, NULL,recvTask , (void *)&server_details);
+    /* Wait till threads are complete before main continues. Unless we  */
+    /* wait we run the risk of executing an exit which will terminate   */
+    /* the process and all threads before the threads have completed.   */
 
     pthread_join( thread1, NULL);
     pthread_join( thread2, NULL);
     printf("Thread 2 returns: %d\n",iret2);
     printf("Thread 1 returns: %d\n",iret1);
-
-    return 0;
+    
 }
 
 
@@ -180,6 +261,61 @@ int * sortNumbers(int *array, int num_of_elements)
     return array;
 }
 
+
+void sendMessage(OPERATION op, char *ip_addr, char *buffer, int sockfd)
+{
+    char capability;
+    switch(op)
+    {
+        case JOIN:
+                printf("Enter the capability of the client\n");
+                scanf("%c",&capability);
+                memset(buffer, '\0', sizeof(buffer));
+                sprintf(buffer, "%c", capability);            
+            break;
+        case DELETE:
+            
+            break;
+        case RESULT:
+            
+            break;
+        default:
+            printf("Invalid operation\n");
+    }
+
+    send(sockfd, buffer, strlen(buffer), 0);
+}
+
+int connectToServer(char *serv_ip_addr)
+{
+    int sockfd = 0;
+    char sendBuff[1024];
+    struct sockaddr_in serv_addr;
+
+    if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        printf("\n Error : Could not create socket \n");
+        return;
+    }
+    memset(&serv_addr, '0', sizeof(serv_addr)); 
+    
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT); 
+    
+    if(inet_pton(AF_INET, serv_ip_addr, &serv_addr.sin_addr)<=0)
+    {
+        printf("\n inet_pton error occured\n");
+        return -1;
+    } 
+
+    if( connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    {
+       printf("\n Error : Connect Failed \n");
+       return -1;
+    }
+
+    return sockfd;
+}
 
 
 
