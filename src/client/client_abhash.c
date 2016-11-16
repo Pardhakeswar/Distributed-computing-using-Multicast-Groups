@@ -29,7 +29,7 @@ typedef struct _server_details
     int sockFd;
 }SERVER_DETAILS;
 
-
+void parse_input(char* buf);
 void sendTask(void *data)
 {
     int op = 0;
@@ -78,7 +78,7 @@ void recvTask(void *data)
             printf("Client Received some work\n");
 
             printf("Data is : %s\n", receive_buff);
-
+	    parse_input(receive_buff);
         }
     }
 }
@@ -325,4 +325,32 @@ int connectToServer(char *serv_ip_addr)
 }
 
 
-
+void parse_input(char* rb)
+{
+        int a,i=0;
+        char* tok;
+        int b[100];
+        int *arr;
+	char buf[1000];
+	strcpy(buf,rb);
+	buf[strlen(rb)]='\0';
+	printf("1   %s\n",rb);
+        tok = strtok(buf," ");
+        a = 0;
+	printf("3\n");
+        b[a++] = (int) strtol(tok, (char **)NULL, 10);
+	printf("4\n");	
+        while(tok!=NULL)
+        {
+		printf("5\n");
+                tok = strtok(NULL," ");
+		printf("6\n");
+                b[a++] = (int) strtol(tok, (char **)NULL, 10);
+        }
+	printf("2\n");
+        arr = sortNumbers(b,a);
+        printf("Printing sorted numbers\n");
+        for(i=0;i<a;i++){
+                printf("%d\t",arr[i]);
+        }
+}
