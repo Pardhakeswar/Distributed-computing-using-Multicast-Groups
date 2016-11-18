@@ -338,13 +338,17 @@ void parse_input(char* rb)
   	 while( token != NULL ) 
    	{
   	  printf( " %s\n", token );
-  	  token = strtok(NULL, " ");
-	  b[a++]= (int) token;
+	  b[a++]=atoi(token);
+	  token = strtok(NULL, " ");
    	}
+	printf("printing received Number\n");
+	for(i=0;i<a;i++){
+                printf("%d\t",b[i]);
+        }
 	arr = sortNumbers(b,a);
-        printf("Printing sorted numbers\n");
+        printf("\nPrinting sorted numbers\n");
         for(i=0;i<a;i++){
-                printf("%d\t",arr[i]);
+                printf("%d ",arr[i]);
         }
 /*        int a,i=0;
         char* tok;
