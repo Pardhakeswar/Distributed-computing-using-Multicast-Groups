@@ -327,7 +327,26 @@ int connectToServer(char *serv_ip_addr)
 
 void parse_input(char* rb)
 {
-        int a,i=0;
+	char *token;
+	//char s[2]=" ";
+	int a=0,i=0;
+    	int b[100];
+	int *arr;
+   /* get the first token */
+   	token = strtok(rb, " ");
+   /* walk through other tokens */
+  	 while( token != NULL ) 
+   	{
+  	  printf( " %s\n", token );
+  	  token = strtok(NULL, " ");
+	  b[a++]= (int) token;
+   	}
+	arr = sortNumbers(b,a);
+        printf("Printing sorted numbers\n");
+        for(i=0;i<a;i++){
+                printf("%d\t",arr[i]);
+        }
+/*        int a,i=0;
         char* tok;
         int b[100];
         int *arr;
@@ -352,5 +371,5 @@ void parse_input(char* rb)
         printf("Printing sorted numbers\n");
         for(i=0;i<a;i++){
                 printf("%d\t",arr[i]);
-        }
+        }*/
 }
