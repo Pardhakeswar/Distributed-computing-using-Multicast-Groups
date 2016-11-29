@@ -73,15 +73,18 @@ void assignGroup(struct clients *cli)
 
 void parse_res(char* buf)
 {
-	int a;
+	int a=0;
 	char* tok;
+	//b[ib][a++] = (int) strtol(tok, (char **)NULL, 10);
+	printf("Enter Function %s\n",__FUNCTION__);	
+	printf("\n printing buf %s\n",buf);
 	tok = strtok(buf," ");
-	a=0;
-	b[ib][a++] = (int) strtol(tok, (char **)NULL, 10);
 	while(tok!=NULL)
 	{
+		printf(" %s \n",tok);
+		b[ib][a++] = atoi(tok);
 		tok = strtok(NULL," ");
-		b[ib][a++] = (int) strtol(tok, (char **)NULL, 10);
+		//b[ib][a++] = (int) strtol(tok, (char **)NULL, 10);
 	}
 	ib=ib+1;
 }
@@ -89,6 +92,7 @@ void parse_res(char* buf)
 
 void merge()
 {
+	printf("Enter funtion %s \n",__FUNCTION__);
 	int cl[NUM_CLI];
 	int i;
 	while(i<NUM_CLI)
@@ -123,12 +127,13 @@ void merge()
 void
 read_from_client (int filedes,struct sockaddr_in clientname)
 {
-  printf("In function read_from_client");
+  printf("In function read_from_client\n");
   char buffer[MAXMSG];
   int nbytes;
   int capability_value = 0;
   char* res;
   char cap;
+  memset(buffer,0,sizeof(buffer));
   nbytes = recv(filedes, buffer, sizeof(buffer),0);
   if (nbytes < 0)
     {
@@ -142,7 +147,7 @@ read_from_client (int filedes,struct sockaddr_in clientname)
   else
     {
       /* Data read. */
-      printf("In %s--- %c",__FUNCTION__,buffer[0]);
+      printf("In %s--- %c and buffers is %s\n",__FUNCTION__,buffer[0],buffer);
       switch (buffer[0]) {
 	case 'J':
 		capability_value = 1;
@@ -152,14 +157,14 @@ read_from_client (int filedes,struct sockaddr_in clientname)
 		break;
 	case 'R':
 		capability_value = 3;
-		fscanf(buffer,"%c %s",&cap,&res);
+		//fscanf(buffer,"%c %s",&cap,&res);
 		break;
 	default:
 		capability_value = 0;
 		break;
       }
-      printf (stderr, "\n Server: got message: %s   %d\n", buffer,capability_value);
-      
+      //printf (stderr, "\n Server: got message: %s   %d\n", buffer,capability_value);
+      printf("Capability %d\n",capability_value);
       if ( capability_value== 1)
       {
 	printf("inside else \n");
@@ -190,7 +195,9 @@ read_from_client (int filedes,struct sockaddr_in clientname)
 	int i;
 	if(b==NULL)
 	{
+		printf("b is null \n");
 		b = (int **) malloc(sizeof(int *)*NUM_CLI);
+		printf("Number of Client in function %d\n",NUM_CLI);
 		for(i=0;i<NUM_CLI;i++)
 		{
 			b[i] = (int *) malloc(sizeof(int)*PER_CLI);	
@@ -200,7 +207,9 @@ read_from_client (int filedes,struct sockaddr_in clientname)
 		if(ib==NUM_CLI)
 			merge();
 		else {
-			parse_res(res);
+			parse_res(&buffer[1]);
+			printf("Done with parsing in function %s\n",__FUNCTION__);
+			//merge();
 		}
 		
 	}	
