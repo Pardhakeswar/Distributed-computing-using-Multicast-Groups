@@ -10,7 +10,7 @@
 #include "../includes/group.h"
 
 #define PORT    4006
-#define MAXMSG  512
+#define MAXMSG  100000
 #define GROUPSIZE 10
 #define MAX_ARRAY_ELEMENTS 100000
 
@@ -21,6 +21,7 @@ struct groups group[GROUPSIZE];
 int **b=NULL;
 int ib=0;
 int NUM_CLI,PER_CLI;
+  static int temp_num_of_cli = 0;
 enum operation {A=1,S,M,D,R=9999};
 
 int
@@ -49,7 +50,20 @@ make_socket (int port)
 
   return sock;
 }
-
+void free_var(){
+	//**b=NULL;
+	printf("FREE the memory inside function\n");
+	int i=0;
+	for(i=0;i<NUM_CLI;i++){
+		free(b[i]);
+	}
+	free(b);
+	*b=NULL;
+	ib=0;
+	NUM_CLI=0;
+	PER_CLI=0;
+	temp_num_of_cli =0;
+}
 
 void assignGroup(struct clients *cli)
 {
@@ -94,34 +108,39 @@ void merge()
 {
 	printf("Enter funtion %s \n",__FUNCTION__);
 	int cl[NUM_CLI];
-	int i;
-	while(i<NUM_CLI)
+	printf("NUM_CLI= %d\t,PER_CLI=%d \n",NUM_CLI,PER_CLI);
+	int i=0;
+	while(i<NUM_CLI){
+		printf("Incrementing the index array\n");
 		cl[i]=0;
+		i++;
+	}
 	while(cl[0] < PER_CLI && cl[1] < PER_CLI)
 	{
-		if(b[0][cl[0]] < b[1][cl[1]])
+		//printf("Enter merge while PER_CLI=%d \t, cl[0]=%d ,cl[1] =%d\n",PER_CLI,cl[0],cl[1]);
+		if(b[0][cl[0]] <= b[1][cl[1]])
 		{
-			printf("%d\n",b[0][cl[0]]);
+			printf("%d\t",b[0][cl[0]]);
 			cl[0] += 1;
 		}
-		if(b[0][cl[0]] > b[1][cl[1]])
+		else if(b[0][cl[0]] > b[1][cl[1]])
 		{
-			printf("%d\n",b[0][cl[1]]);
+			printf("%d\t",b[1][cl[1]]);
 			cl[1] += 1;
 		}
 	}
-
+	//printf("Enter merge after while PER_CLI=%d \t, cl[0]=%d ,cl[1] =%d\n",PER_CLI,cl[0],cl[1]);
 	if(cl[0]==PER_CLI)
 	{
 		for(i=cl[1];i<PER_CLI;i++)
-			printf("%d\n",b[0][cl[1]]);	
+			printf("%d\t",b[0][i]);	
 	}
 	else if(cl[1]==PER_CLI)
 	{
 		for(i=cl[0];i<PER_CLI;i++)
-			printf("%d\n",b[0][cl[0]]);	
+			printf("%d\t",b[0][i]);	
 	}
-	
+	printf("\n");
 }
 
 void
@@ -195,23 +214,34 @@ read_from_client (int filedes,struct sockaddr_in clientname)
 	int i;
 	if(b==NULL)
 	{
-		printf("b is null \n");
+		temp_num_of_cli = NUM_CLI;
+		printf("b is null temp_num_of_cli = %d\n",temp_num_of_cli);
 		b = (int **) malloc(sizeof(int *)*NUM_CLI);
+		if(b == NULL){
+			printf("can't assing memory\n");
+		}
 		printf("Number of Client in function %d\n",NUM_CLI);
 		for(i=0;i<NUM_CLI;i++)
 		{
 			b[i] = (int *) malloc(sizeof(int)*PER_CLI);	
 		}
+		parse_res(&buffer[1]);
+		temp_num_of_cli--;
 	}
-	else {
-		if(ib==NUM_CLI)
-			merge();
-		else {
+	else 
+	{
+			printf("else before decrement temp_num_of_cli= %d\n",temp_num_of_cli);
 			parse_res(&buffer[1]);
+			temp_num_of_cli--;
+			printf("temp_num_of_cli= %d\n",temp_num_of_cli);
 			printf("Done with parsing in function %s\n",__FUNCTION__);
+			if(temp_num_of_cli == 0)
+			{
+				printf("Calling merge\n");
+				merge();
+				free_var();
+			}
 			//merge();
-		}
-		
 	}	
       }
     }

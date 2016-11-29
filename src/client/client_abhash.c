@@ -56,6 +56,7 @@ char *prepare_buffer(int *array, int num_of_elements)
         if(buffer != NULL)
         {
             printf("Allocation is success\n");
+	    strcat(buffer,"R");
             for(indx = 0;indx < num_of_elements;indx++)
             {
                 my_itoa(array[indx],str_num);
@@ -364,7 +365,7 @@ int connectToServer(char *serv_ip_addr)
 void parse_input(char* rb)
 {
 	char *token;
-    char *buffer = NULL;
+    	char *buffer = NULL;
 	//char s[2]=" ";
 	int a=0,i=0;
     	int b[MAX_ARRAY_ELEMENTS];
