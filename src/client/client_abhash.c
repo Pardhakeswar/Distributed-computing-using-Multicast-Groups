@@ -15,6 +15,7 @@
 
 
 #define PORT 4006
+#define MAX_ARRAY_ELEMENTS 100000
 
 typedef enum _operation
 {
@@ -29,7 +30,44 @@ typedef struct _server_details
     int sockFd;
 }SERVER_DETAILS;
 
+static char ser_ip_addr[16];
+static int sockFd = 0;
+
 void parse_input(char* buf);
+void my_itoa(int num, char *str)
+{
+    if(str == NULL)
+    {
+        return NULL;
+    }
+    sprintf(str, "%d", num);
+}
+
+char *prepare_buffer(int *array, int num_of_elements)
+{
+    char str_num[5];
+    long indx = 0;
+    char *buffer = NULL;
+    
+    if(NULL != array)
+    {
+        printf("prepare_buffer num_of_elements = %d\n",num_of_elements);
+        buffer = (char *)malloc((sizeof(int) * num_of_elements));
+        if(buffer != NULL)
+        {
+            printf("Allocation is success\n");
+            for(indx = 0;indx < num_of_elements;indx++)
+            {
+                my_itoa(array[indx],str_num);
+                strcat(buffer, str_num);
+                strcat(buffer, " ");
+            }
+        }
+        
+        printf("formed buffer is %s\n",buffer);
+    }
+    return buffer;
+}
 void sendTask(void *data)
 {
     int op = 0;
@@ -207,8 +245,6 @@ void PerformTask()
 #endif
 int main(int argc, char *argv[])
 {
-    int sockFd = 0;
-    char ser_ip_addr[16];
     SERVER_DETAILS server_details;
 
     pthread_t thread1,thread2;
@@ -328,9 +364,10 @@ int connectToServer(char *serv_ip_addr)
 void parse_input(char* rb)
 {
 	char *token;
+    char *buffer = NULL;
 	//char s[2]=" ";
 	int a=0,i=0;
-    	int b[100];
+    	int b[MAX_ARRAY_ELEMENTS];
 	int *arr;
    /* get the first token */
    	token = strtok(rb, " ");
@@ -346,34 +383,18 @@ void parse_input(char* rb)
                 printf("%d\t",b[i]);
         }
 	arr = sortNumbers(b,a);
-        printf("\nPrinting sorted numbers\n");
-        for(i=0;i<a;i++){
-                printf("%d ",arr[i]);
-        }
-/*        int a,i=0;
-        char* tok;
-        int b[100];
-        int *arr;
-	char buf[1000];
-	strcpy(buf,rb);
-	buf[strlen(rb)]='\0';
-	printf("1   %s\n",rb);
-        tok = strtok(buf," ");
-        a = 0;
-	printf("3\n");
-        b[a++] = (int) strtol(tok, (char **)NULL, 10);
-	printf("4\n");	
-        while(tok!=NULL)
-        {
-		printf("5\n");
-                tok = strtok(NULL," ");
-		printf("6\n");
-                b[a++] = (int) strtol(tok, (char **)NULL, 10);
-        }
-	printf("2\n");
-        arr = sortNumbers(b,a);
-        printf("Printing sorted numbers\n");
-        for(i=0;i<a;i++){
-                printf("%d\t",arr[i]);
-        }*/
+    printf("\nPrinting sorted numbers\n");
+    for(i=0;i<a;i++){
+            printf("%d ",arr[i]);
+    }
+    printf("\n");
+    buffer = prepare_buffer(arr, a);
+    if(NULL != buffer)
+    {
+       sendMessage(RESULT, ser_ip_addr, buffer,sockFd); 
+    }
+    else
+    {
+        printf("Buffer is Null, nothing to send\n");
+    }
 }

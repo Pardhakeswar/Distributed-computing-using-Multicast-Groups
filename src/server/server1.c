@@ -12,6 +12,7 @@
 #define PORT    4006
 #define MAXMSG  512
 #define GROUPSIZE 10
+#define MAX_ARRAY_ELEMENTS 100000
 
 int J_CLI;
 
@@ -216,6 +217,7 @@ int join_client()
   int i;
   struct sockaddr_in clientname;
   size_t size;
+  char str[16];
 
   /* Create the socket and set it up to accept connections. */
   sock = make_socket (PORT);
@@ -245,7 +247,7 @@ int join_client()
           {
             if (i == sock)
               {
-		printf("IF i= %d\n",i);
+		        printf("IF i= %d\n",i);
                 /* Connection request on original socket. */
                 int news;
                 size = sizeof (clientname);
@@ -255,22 +257,22 @@ int join_client()
                               &size);
 
                 if (news < 0)
-                  {
-                    perror ("accept");
-                    exit (EXIT_FAILURE);
-                  }
+                {
+                  perror ("accept");
+                  exit (EXIT_FAILURE);
+                }
 
-        /*        fprintf (stderr,
-                         "Server: connect from host %s, port %hd.\n",
-                         inet_ntoa (clientname.sin_addr),
-                         ntohs (clientname.sin_port));*/
                 FD_SET (news, &active_fd_set);
-		J_CLI=i;
+		        J_CLI=i;
               }
-            else
-		{
-		printf("%d iiii \n",i);
-              read_from_client(i,clientname);
+              else
+   		      {
+   		        printf("%d iiii \n",i);
+                printf("clientname port = %d\n",clientname.sin_port);
+                //printf("clientname address = %s\n",inet_ntoa(clientname.sin_addr));
+                inet_ntop(AF_INET, &(clientname.sin_addr), str, INET_ADDRSTRLEN);
+                printf("%s\n", str);
+                read_from_client(i,clientname);
               }
           }
 
@@ -325,7 +327,7 @@ char *my_itoa(int num, char *str)
 
 void distribute_task(int num_cli,int grp_index,int *a,int n)
 {
-	int arr[100000];
+	int arr[MAX_ARRAY_ELEMENTS];
 	
 	int i,j,k1,count,count_client=0,fl;
 	j=n/num_cli;
@@ -335,7 +337,7 @@ void distribute_task(int num_cli,int grp_index,int *a,int n)
 	for(k1=0;k1<num_cli;k1++)
 	{
 		printf("kjkjkjkj  %d\n",k1);
-		char buf[100000]="";
+		char buf[MAX_ARRAY_ELEMENTS]="";
 		char str_num[5];
 		for(i=j*k1;i<(j+k1*j)-1;i++)
 		{
