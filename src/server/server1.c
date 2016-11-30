@@ -10,11 +10,8 @@
 #include <string.h>
 
 #include "../includes/group.h"
+#include "../includes/common_defines.h"
 
-#define PORT    4006
-#define MAXMSG  100000
-#define GROUPSIZE 10
-#define MAX_ARRAY_ELEMENTS 100000
 enum operation {A=1,S,M,D,R=9999};
 
 int J_CLI;

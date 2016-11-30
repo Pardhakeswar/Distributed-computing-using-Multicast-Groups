@@ -1,7 +1,7 @@
 #include<stdio.h>
 #include<stdbool.h>
 
-#define MAX_NUM_OF_CLIENTs 255
+#define MAX_NUM_OF_CLIENTS 255
 #define MAX_NAME_LEN 15
 #define MAX_TASK_NAME_LEN 15
 
@@ -21,7 +21,7 @@ typedef struct _client_info {
 	
 typedef struct _group_info {
 	char name[MAX_NAME_LEN];
-	CLIENT_INFO client[MAX_NUM_OF_CLIENTs];	
+	CLIENT_INFO client[MAX_NUM_OF_CLIENTS];	
 	int size;
 	bool in_use;
 	char task[MAX_TASK_NAME_LEN];
