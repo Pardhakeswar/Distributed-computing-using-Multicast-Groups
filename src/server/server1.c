@@ -7,6 +7,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <string.h>
+
 #include "../includes/group.h"
 
 #define PORT    4006
@@ -56,9 +58,10 @@ void free_var(){
 	int i=0;
 	for(i=0;i<NUM_CLI;i++){
 		free(b[i]);
+        b[i] = NULL;
 	}
 	free(b);
-	*b=NULL;
+	b=NULL;
 	ib=0;
 	NUM_CLI=0;
 	PER_CLI=0;
@@ -89,7 +92,6 @@ void parse_res(char* buf)
 {
 	int a=0;
 	char* tok;
-	//b[ib][a++] = (int) strtol(tok, (char **)NULL, 10);
 	printf("Enter Function %s\n",__FUNCTION__);	
 	printf("\n printing buf %s\n",buf);
 	tok = strtok(buf," ");
@@ -98,7 +100,6 @@ void parse_res(char* buf)
 		printf(" %s \n",tok);
 		b[ib][a++] = atoi(tok);
 		tok = strtok(NULL," ");
-		//b[ib][a++] = (int) strtol(tok, (char **)NULL, 10);
 	}
 	ib=ib+1;
 }
