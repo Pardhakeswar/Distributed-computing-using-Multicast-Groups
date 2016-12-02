@@ -11,21 +11,18 @@
 #include "merge.c"
 
 #include "../includes/group.h"
+#include "../includes/common_defines.h"
 
-#define PORT    4006
-#define MAXMSG  100000
-#define GROUPSIZE 10
-#define MAX_ARRAY_ELEMENTS 100000
+enum operation {A=1,S,M,D,R=9999};
 
 int J_CLI;
 
-struct clients *client=NULL;
-struct groups group[GROUPSIZE]; 
+CLIENT_INFO *client=NULL;
+GROUP_INFO group[GROUPSIZE]; 
 int **b=NULL;
 int ib=0;
 int NUM_CLI,PER_CLI;
-  static int temp_num_of_cli = 0;
-enum operation {A=1,S,M,D,R=9999};
+static int temp_num_of_cli = 0;
 
 int
 make_socket (int port)
@@ -69,7 +66,7 @@ void free_var(){
 	temp_num_of_cli =0;
 }
 
-void assignGroup(struct clients *cli)
+void assignGroup(CLIENT_INFO *cli)
 {
 	int i;
 	for(i=0;i<GROUPSIZE;i++)
@@ -78,7 +75,7 @@ void assignGroup(struct clients *cli)
 			{
 				group[i].client[group[i].size].client_addr = cli->client_addr;
 				group[i].client[group[i].size].client_port = cli->client_port;
-                        	group[i].client[group[i].size].in_use = false;
+            	group[i].client[group[i].size].in_use = false;
 				group[i].client[group[i].size].fd = cli->fd;
 				printf("assign group  %d   %d",i,group[i].client[group[i].size].fd);
                         	group[i].client[group[i].size].capability = cli->capability;
@@ -191,7 +188,7 @@ read_from_client (int filedes,struct sockaddr_in clientname)
       {
 	printf("inside else \n");
 	//Create Client structure and add it to group based on capability
-        struct clients *tmpClient =(struct clients*) malloc(sizeof(struct clients));
+        CLIENT_INFO *tmpClient =(struct clients*) malloc(sizeof(CLIENT_INFO));
 	tmpClient->fd = filedes;
 	printf("filedes   %d\n",tmpClient->fd);
         tmpClient->client_addr = clientname.sin_addr;
