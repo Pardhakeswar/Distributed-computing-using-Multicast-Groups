@@ -8,6 +8,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <string.h>
+#include "merge.c"
 
 #include "../includes/group.h"
 
@@ -153,6 +154,7 @@ read_from_client (int filedes,struct sockaddr_in clientname)
   int capability_value = 0;
   char* res;
   char cap;
+  int *output;
   memset(buffer,0,sizeof(buffer));
   nbytes = recv(filedes, buffer, sizeof(buffer),0);
   if (nbytes < 0)
@@ -239,7 +241,9 @@ read_from_client (int filedes,struct sockaddr_in clientname)
 			if(temp_num_of_cli == 0)
 			{
 				printf("Calling merge\n");
-				merge();
+				//merge();
+				output = mergeKArrays(b,NUM_CLI);
+				printArray(output, NUM_CLI*PER_CLI);
 				free_var();
 			}
 			//merge();
