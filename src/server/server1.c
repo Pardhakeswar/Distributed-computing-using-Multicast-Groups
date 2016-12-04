@@ -12,6 +12,7 @@
 
 #include "../includes/group.h"
 #include "../includes/common_defines.h"
+#include "../memman/mem_alloc.h"
 
 enum operation {A=1,S,M,D,R=9999};
 
@@ -144,12 +145,20 @@ void
 read_from_client (int filedes,struct sockaddr_in clientname)
 {
   printf("In function read_from_client\n");
-  char buffer[MAXMSG];
+  char *buffer = NULL;
   int nbytes;
   int capability_value = 0;
   char* res;
   char cap;
   int *output;
+
+  buffer = AllocateMemory(MAXMSG);
+
+  if(NULL == buffer)
+  {
+    printf("AllocateMemorys failed\n");
+    exit(0);
+  }
   memset(buffer,0,sizeof(buffer));
   nbytes = recv(filedes, buffer, sizeof(buffer),0);
   if (nbytes < 0)
@@ -365,9 +374,7 @@ char *my_itoa(int num, char *str)
 }
 
 void distribute_task(int num_cli,int grp_index,int *a,int n)
-{
-	int arr[MAX_ARRAY_ELEMENTS];
-	
+{	
 	int i,j,k1,count,count_client=0,fl;
 	j=n/num_cli;
 	PER_CLI = j;
@@ -376,8 +383,18 @@ void distribute_task(int num_cli,int grp_index,int *a,int n)
 	for(k1=0;k1<num_cli;k1++)
 	{
 		printf("kjkjkjkj  %d\n",k1);
-		char buf[MAX_ARRAY_ELEMENTS]="";
-		char str_num[5];
+		char *buf=NULL;
+		char str_num[MAX_SIZE_OF_ONE_ENTRY];
+
+        buf = (char *)AllocateMemory(MAXMSG);
+
+        if(NULL == buf)
+        {
+            printf("AllocateMemory is failed\n");
+            exit(0);
+        }
+
+        memset(buf, 0, MAXMSG);
 		for(i=j*k1;i<(j+k1*j)-1;i++)
 		{
 			char str_num[5];
@@ -385,12 +402,9 @@ void distribute_task(int num_cli,int grp_index,int *a,int n)
 			strcat(buf,str_num);
 			strcat(buf," ");
 		}
-		printf("kkkkk   %d\n",k1);	
 		my_itoa(a[i],str_num);
                 strcat(buf,str_num);
 		printf("%s\n\n",str_num);
-		printf("distri\n\n");
-		printf("distri 111 %s\n",group[grp_index].task);
 		printf("in function %s size is %d, k=%d\n",__FUNCTION__,group[grp_index].size,k1);
 		printf("%d \t %s\n",group[grp_index].client[k1].fd,buf);
 		if(send(group[grp_index].client[k1].fd,buf,strlen(buf),0)<0)
