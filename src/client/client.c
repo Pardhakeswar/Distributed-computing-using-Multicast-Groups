@@ -43,11 +43,11 @@ char *prepare_buffer(int *array, int num_of_elements)
     if(NULL != array)
     {
         printf("prepare_buffer num_of_elements = %d\n",num_of_elements);
-        buffer = (char *)malloc((sizeof(int) * num_of_elements));
+        buffer = (char *)AllocateMemory((sizeof(int) * num_of_elements) + 1);
         if(buffer != NULL)
         {
             printf("Allocation is success\n");
-	    strcat(buffer,"R");
+	        strcat(buffer,"R");
             for(indx = 0;indx < num_of_elements;indx++)
             {
                 my_itoa(array[indx],str_num);
