@@ -8,7 +8,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <string.h>
-#include "merge.c"
+#include "merge.h"
 
 #include "../includes/group.h"
 #include "../includes/common_defines.h"
@@ -51,8 +51,6 @@ make_socket (int port)
   return sock;
 }
 void free_var(){
-	//**b=NULL;
-	printf("FREE the memory inside function\n");
 	int i=0;
 	for(i=0;i<NUM_CLI;i++){
 		free(b[i]);
@@ -239,7 +237,7 @@ read_from_client (int filedes,struct sockaddr_in clientname)
 			{
 				printf("Calling merge\n");
 				//merge();
-				output = mergeKArrays(b,NUM_CLI);
+				output = mergeKArrays(b,NUM_CLI,PER_CLI);
 				printArray(output, NUM_CLI*PER_CLI);
 				free_var();
 			}
