@@ -145,20 +145,21 @@ void
 read_from_client (int filedes,struct sockaddr_in clientname)
 {
   printf("In function read_from_client\n");
-  char *buffer = NULL;
+  //char *buffer = NULL;
+  char buffer[MAXMSG];
   int nbytes;
   int capability_value = 0;
   char* res;
   char cap;
   int *output;
 
-  buffer = AllocateMemory(MAXMSG);
+  /*buffer = (char *)AllocateMemory(MAXMSG);
 
   if(NULL == buffer)
   {
     printf("AllocateMemorys failed\n");
     exit(0);
-  }
+  }*/
   memset(buffer,0,sizeof(buffer));
   nbytes = recv(filedes, buffer, sizeof(buffer),0);
   if (nbytes < 0)
@@ -313,9 +314,8 @@ int join_client()
                 FD_SET (news, &active_fd_set);
 		        J_CLI=i;
               }
-              else
-   		      {
-   		        printf("%d iiii \n",i);
+              else{
+   		printf("%d iiii \n",i);
                 printf("clientname port = %d\n",clientname.sin_port);
                 //printf("clientname address = %s\n",inet_ntoa(clientname.sin_addr));
                 inet_ntop(AF_INET, &(clientname.sin_addr), str, INET_ADDRSTRLEN);

@@ -10,10 +10,10 @@ MEMMAN = ../memman
 
 default:	server1
 server1:	server1.o logger.o merge_utils.o
-		$(CC) -lpthread $(CFLAGS) -o $@ server1.o logger.o merge_utils.o $(MEMMAN)/alloc.c
+		$(CC) -pthread $(CFLAGS) -o $@ server1.o logger.o merge_utils.o $(MEMMAN)/alloc.c
 
 server1.o:	server1.c $(INCLUDE_PATH)/logger.h
-			$(CC) $(CFLAGS) -c server1.c
+			$(CC)  $(CFLAGS) -c server1.c
 
 
 logger.o:	logger.c  $(INCLUDE_PATH)/logger.h

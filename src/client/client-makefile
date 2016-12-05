@@ -10,7 +10,7 @@ MEMMAN = ../memman
 
 default:	client
 client:	client.o logger.o
-		$(CC) -lpthread $(CFLAGS) -o $@ client.o logger.o $(MEMMAN)/alloc.c
+		$(CC) -pthread $(CFLAGS) -o $@ client.o logger.o $(MEMMAN)/alloc.c
 
 client.o:	client.c  $(INCLUDE_PATH)/logger.h
 			$(CC) $(CFLAGS) -c client.c
